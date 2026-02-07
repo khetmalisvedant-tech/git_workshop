@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Socket.IO Chat Test</title>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background: #f2f2f2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 40px;
+      }
+      #chat {
+        width: 400px;
+        height: 300px;
+        background: white;
+        border-radius: 10px;
+        overflow-y: auto;
+        padding: 10px;
+        box-shadow: 0 0 10px rgba(0,0,0,0.2);
+      }
+      .msg {
+        background: #d8eaff;
+        padding: 8px 12px;
+        border-radius: 8px;
+        margin: 5px 0;
+      }
+      #controls {
+        margin-top: 10px;
+      }
+      input {
+        padding: 8px;
+        width: 300px;
+      }
+      button {
+        padding: 8px 12px;
+        background: #007bff;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+      }
+    </style>
+  </head>
+
+  <body>
+    <h2>Socket.IO Chat Test</h2>
+    <div id="chat"></div>
+    <div id="controls">
+      <input id="msg" placeholder="Type a message" />
+      <button onclick="sendMsg()">Send</button>
+    </div>
+
+    <script>
+      // Connect to backend server
+      const socket = io("http://localhost:5000");
+
+      // Assign this tab a random user ID
+      const userId = "user_" + Math.floor(Math.random() * 1000);
+      socket.emit("join", userId);
+
+      socket.on("connect", () => {
+        console.log("🟢 Connected to server as", userId);
+      });
+
+      // When a new message is received
+      socket.on("receiveMessage", (data) => {
+        const chatBox = document.getElementById("chat");
+        const msgDiv = document.createElement("div");
+        msgDiv.classList.add("msg");
+        msgDiv.textContent = `${data.senderId}: ${data.text}`;
+        chatBox.appendChild(msgDiv);
+        chatBox.scrollTop = chatBox.scrollHeight;
+      });
+
+      // Send a message
+      function sendMsg() {
+        const text = document.getElementById("msg").value;
+        if (!text) return;
+        socket.emit("sendMessage", {
+          chatId: "demoChat",
+          senderId: userId,
+          text: text,
+        });
+        document.getElementById("msg").value = "";
+      }
+    </script>
+  </body>
+</html>
